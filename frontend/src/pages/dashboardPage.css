@@ -1,3 +1,7 @@
+#app > div.min-h-screen {
+  background: #0a0a0f;
+}
+
 body::before {
   content: '';
   position: fixed;
