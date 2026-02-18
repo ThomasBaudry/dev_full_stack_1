@@ -5,60 +5,19 @@
  *         renderDashboard(document.getElementById('app'))
  */
 
-import './dashboardPage.css';
 import { getAddProductModalTemplate } from './modals/addProductModal.js';
 import { getEditProductModalTemplate } from './modals/editProductModal.js';
 import { getDeleteProductModalTemplate } from './modals/deleteProductModal.js';
 
 // ── Template HTML principal ─────────────────────────────────────────────────
 const getTemplate = () => `
-  <div class="min-h-screen text-white relative">
-
-    <!-- NAVBAR -->
-    <nav class="relative z-10 border-b border-[#1a1a26] bg-[#111118cc] backdrop-blur-xl sticky top-0">
-      <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-        <div class="flex items-center gap-4">
-          <div class="w-8 h-8 rounded-lg bg-[#c8f04a] flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-[#0a0a0f]" viewBox="0 0 16 16" fill="currentColor">
-              <rect x="1" y="1" width="6" height="6" rx="1.5"/>
-              <rect x="9" y="1" width="6" height="6" rx="1.5"/>
-              <rect x="1" y="9" width="6" height="6" rx="1.5"/>
-              <rect x="9" y="9" width="6" height="6" rx="1.5"/>
-            </svg>
-          </div>
-          <span class="font-display font-bold text-lg tracking-tight text-white">Dashboard</span>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-[#1a1a26] border border-[#252535]">
-            <div class="w-6 h-6 rounded-full bg-[#c8f04a22] border border-[#c8f04a44]
-                        flex items-center justify-center flex-shrink-0">
-              <span class="font-display font-semibold text-xs text-[#c8f04a]" id="user-initial">A</span>
-            </div>
-            <span class="text-sm text-zinc-300 font-medium" id="user-email">admin@boutique.fr</span>
-          </div>
-
-          <button id="logout-btn"
-            class="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-[#252535]
-                   text-zinc-500 hover:text-white hover:border-zinc-600 hover:bg-[#1a1a26]
-                   transition-all duration-200 text-sm">
-            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0
-                   00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0
-                   002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
-            </svg>
-            Déconnexion
-          </button>
-        </div>
-      </div>
-    </nav>
+  <div class="dashboard-page min-h-screen text-white relative">
 
     <!-- CONTENU PRINCIPAL -->
     <main class="relative z-10 max-w-7xl mx-auto px-6 py-10">
 
       <!-- En-tête -->
-      <div class="flex items-end justify-between mb-8 animate-fade-up">
+      <div class="flex items-end justify-between mb-8 opacity-0 [animation:fadeUp_0.4s_ease-out_forwards]">
         <div>
           <p class="text-zinc-600 text-sm font-display uppercase tracking-widest mb-1">Catalogue</p>
           <h1 class="font-display font-extrabold text-3xl text-white tracking-tight">
@@ -77,7 +36,7 @@ const getTemplate = () => `
       </div>
 
       <!-- Compteur + recherche -->
-      <div class="flex items-center justify-between mb-5 animate-fade-up" style="animation-delay:0.05s">
+      <div class="flex items-center justify-between mb-5 opacity-0 [animation:fadeUp_0.4s_ease-out_forwards]" style="animation-delay:0.05s">
         <p class="text-zinc-600 text-sm">
           <span id="product-count" class="text-zinc-400 font-medium">0</span> produits
         </p>
@@ -95,7 +54,7 @@ const getTemplate = () => `
       </div>
 
       <!-- Tableau -->
-      <div class="rounded-2xl border border-[#1a1a26] overflow-hidden animate-fade-up"
+      <div class="rounded-2xl border border-[#1a1a26] overflow-hidden opacity-0 [animation:fadeUp_0.4s_ease-out_forwards]"
         style="animation-delay:0.1s">
         <div class="grid grid-cols-[2fr_1fr_1fr_100px_120px] bg-[#111118] border-b border-[#1a1a26] px-6 py-3">
           <span class="text-xs font-display font-semibold text-zinc-600 uppercase tracking-widest">Produit</span>
@@ -164,14 +123,16 @@ const renderTable = (data) => {
   }
   empty.classList.add('hidden');
 
-  list.innerHTML = data.map(p => {
+  list.innerHTML = data.map((p, index) => {
     const catStyle  = categoryColors[p.category] ?? defaultCatStyle;
     const stockColor = p.stock <= 5 ? 'color:#f87171' : p.stock <= 15 ? 'color:#fbbf24' : 'color:#a1a1aa';
     const emoji      = categoryEmoji[p.category] ?? '📦';
 
     return `
-      <div class="product-row grid grid-cols-[2fr_1fr_1fr_100px_120px] px-6 py-4
+      <div class="group grid grid-cols-[2fr_1fr_1fr_100px_120px] px-6 py-4
+                  opacity-0 [animation:fadeUp_0.35s_ease-out_forwards] hover:bg-[rgba(200,240,74,0.03)] transition-colors duration-150
                   border-b border-[#1a1a2666] last:border-0 items-center"
+        style="animation-delay:${Math.min(index + 1, 6) * 0.05}s"
         data-id="${p.id}">
         <div class="flex items-center gap-3 min-w-0">
           <div class="w-9 h-9 rounded-xl bg-[#1a1a26] border border-[#252535] flex-shrink-0
@@ -182,7 +143,7 @@ const renderTable = (data) => {
           </div>
         </div>
         <div>
-          <span class="cat-badge px-2.5 py-1 rounded-lg border" style="${catStyle}">${p.category}</span>
+          <span class="px-2.5 py-1 rounded-lg border font-display text-[10px] font-semibold tracking-[0.08em] uppercase" style="${catStyle}">${p.category}</span>
         </div>
         <div>
           <span class="font-display font-semibold text-white text-sm">
@@ -193,7 +154,7 @@ const renderTable = (data) => {
           <span class="text-sm font-medium" style="${stockColor}">${p.stock}</span>
           <span style="color:#3f3f46;font-size:12px;margin-left:4px">unités</span>
         </div>
-        <div class="flex items-center justify-end gap-2 row-actions">
+        <div class="flex items-center justify-end gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <button class="edit-btn px-3 py-1.5 rounded-lg border border-[#252535] text-zinc-500
                          hover:bg-[#1a1a26] hover:text-white hover:border-zinc-600
                          transition-all duration-200 text-xs font-medium" data-id="${p.id}">
@@ -340,11 +301,6 @@ const initEvents = () => {
   });
 
   document.getElementById('add-product-btn').addEventListener('click', openAddModal);
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    showToast('Déconnexion en cours...', 'info');
-    // TODO: appel API logout + redirect
-    // setTimeout(() => window.location.hash = '#/login', 1200);
-  });
 
   document.getElementById('add-modal-close').addEventListener('click', () => closeModal(addModal));
   document.getElementById('add-cancel').addEventListener('click',      () => closeModal(addModal));

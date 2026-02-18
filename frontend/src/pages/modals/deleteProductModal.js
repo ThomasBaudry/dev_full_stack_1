@@ -1,6 +1,6 @@
 export const getDeleteProductModalTemplate = () => `
-  <div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
-    <div class="bg-[#111118] border border-[#252535] rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 animate-slide-in">
+  <div id="delete-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[rgba(10,10,15,0.85)] backdrop-blur-[6px]">
+    <div class="bg-[#111118] border border-[#252535] rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6 opacity-0 [animation:slideIn_0.35s_cubic-bezier(0.16,1,0.3,1)_forwards]">
       <div class="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center
                   justify-center mx-auto mb-5">
         <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

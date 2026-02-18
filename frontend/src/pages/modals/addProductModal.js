@@ -1,7 +1,7 @@
 export const getAddProductModalTemplate = () => `
-  <div id="add-modal" class="fixed inset-0 z-50 hidden items-center justify-center modal-backdrop">
+  <div id="add-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-[rgba(10,10,15,0.85)] backdrop-blur-[6px]">
     <div class="bg-[#111118] border border-[#252535] rounded-2xl shadow-2xl w-full max-w-lg mx-4
-                animate-slide-in max-h-[90vh] overflow-y-auto">
+                opacity-0 [animation:slideIn_0.35s_cubic-bezier(0.16,1,0.3,1)_forwards] max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between px-6 py-4 border-b border-[#1a1a26] sticky top-0 bg-[#111118] z-10">
         <h3 class="font-display font-bold text-lg text-white">Ajouter un produit</h3>
         <button id="add-modal-close"
