@@ -1,5 +1,5 @@
 :root {
-  font-family: Arial, sans-serif;
+  font-family: 'DM Sans', sans-serif;
 }
 
 * {
@@ -8,8 +8,8 @@
 
 body {
   margin: 0;
-  background: #f7f7f7;
-  color: #111;
+  background: #0a0a0f;
+  color: #e4e4e7;
 }
 
 .container {

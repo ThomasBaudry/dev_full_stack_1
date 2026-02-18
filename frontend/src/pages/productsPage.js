@@ -6,6 +6,7 @@ import { fetchProducts } from '../api/productsApi.js';
 import { productCard } from '../components/productCard.js';
 import { addToCart } from '../store/cartStore.js';
 import { renderNavbar } from '../components/navbar.js';
+import { renderSearchBar } from '../components/searchBar.js';
 import { escapeHtml } from '../utils.js';
 
 /** Rendu de la page produits. */
@@ -59,11 +60,15 @@ export const renderProductsPage = async (container) => {
           <h1 class="font-display font-extrabold text-3xl text-white tracking-tight">Tous nos produits</h1>
           <p class="text-zinc-500 text-sm mt-1"><span class="text-zinc-400 font-medium">${list.length}</span> produit${list.length > 1 ? 's' : ''}</p>
         </div>
+        <div id="search-bar-slot"></div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="product-grid">
           ${list.map(productCard).join('')}
         </div>
       </div>
     `;
+
+    // Barre de recherche dans la page produits
+    renderSearchBar(container.querySelector('#search-bar-slot'));
 
     // Ajouter au panier
     container.querySelectorAll('.add-to-cart-btn').forEach((btn) => {
