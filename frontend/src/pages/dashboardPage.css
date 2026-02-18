@@ -1,0 +1,79 @@
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── Scrollbar discrète ─────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #252535; border-radius: 2px; }
+
+/* ── Animations ─────────────────────────────────────────────────── */
+@keyframes fadeUp {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  0%   { opacity: 0; transform: translateX(-8px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.animate-fade-up {
+  opacity: 0;
+  animation: fadeUp 0.4s ease-out forwards;
+}
+
+.animate-slide-in {
+  opacity: 0;
+  animation: slideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Lignes tableau — animation staggerée ───────────────────────── */
+.product-row {
+  opacity: 0;
+  animation: fadeUp 0.35s ease-out forwards;
+  transition: background 0.15s ease;
+}
+
+.product-row:nth-child(1) { animation-delay: 0.05s; }
+.product-row:nth-child(2) { animation-delay: 0.10s; }
+.product-row:nth-child(3) { animation-delay: 0.15s; }
+.product-row:nth-child(4) { animation-delay: 0.20s; }
+.product-row:nth-child(5) { animation-delay: 0.25s; }
+.product-row:nth-child(6) { animation-delay: 0.30s; }
+
+.product-row:hover {
+  background: rgba(200, 240, 74, 0.03);
+}
+
+/* ── Actions cachées — visibles au hover sur la ligne ───────────── */
+.row-actions {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.product-row:hover .row-actions {
+  opacity: 1;
+}
+
+/* ── Badge catégorie ────────────────────────────────────────────── */
+.cat-badge {
+  font-family: 'Syne', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ── Modal backdrop ─────────────────────────────────────────────── */
+.modal-backdrop {
+  background: rgba(10, 10, 15, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
