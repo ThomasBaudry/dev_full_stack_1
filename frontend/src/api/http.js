@@ -49,7 +49,7 @@ const request = async (url, options = {}) => {
   const response = await fetch(url, { credentials: 'include', ...options });
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    const error = new Error(body.message || `Erreur ${response.status}`);
+    const error = new Error(body.message || body.error || `Erreur ${response.status}`);
     error.status = response.status;
     throw error;
   }

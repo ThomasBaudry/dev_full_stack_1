@@ -1,4 +1,4 @@
-import { writeFile, unlink } from 'node:fs/promises';
+import { writeFile, unlink, mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, extname } from 'node:path';
 import { v4 as uuidv4 } from 'uuid';
@@ -41,6 +41,7 @@ const parseBase64Image = (dataUrl) => {
 
 // Sauvegarde les images base64 sur le disque et retourne les métadonnées
 const saveImages = async (images = []) => {
+  await mkdir(UPLOADS_DIR, { recursive: true });
   const saved = [];
 
   for (let i = 0; i < images.length; i++) {
@@ -52,7 +53,7 @@ const saveImages = async (images = []) => {
     saved.push({
       filename,
       path: `/uploads/${filename}`,
-      mime_type: mimeType
+      mime_type: mimeType,
     });
   }
 

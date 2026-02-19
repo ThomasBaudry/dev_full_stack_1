@@ -7,6 +7,8 @@ import { escapeHtml, formatPrice } from '../utils.js';
 import { addToCart } from '../store/cartStore.js';
 import { renderNavbar } from '../components/navbar.js';
 
+const BACKEND_BASE_URL = 'http://localhost:5000';
+
 /** Rendu de la page détail produit. */
 export const renderProductDetailPage = async (container, { id }) => {
   container.innerHTML = `
@@ -17,8 +19,11 @@ export const renderProductDetailPage = async (container, { id }) => {
   try {
     const product = await fetchProduct(id);
     const name = product.libelle || product.label || product.name || '';
-    const images = Array.isArray(product.images) && product.images.length > 0
+    const images = Array.isArray(product.images)
       ? product.images
+          .map((img) => (typeof img === 'string' ? img : img?.path))
+          .filter(Boolean)
+          .map((path) => (String(path).startsWith('http') ? String(path) : `${BACKEND_BASE_URL}${path}`))
       : [];
     const category = product.categorie || product.category || '';
     const price = product.prix || product.price || 0;

@@ -43,13 +43,17 @@ export const deleteProduct = (id) =>
   dbRun('DELETE FROM products WHERE id = ?', [id]);
 
 export const addProductImage = ({ product_id, filename, path, mime_type }) =>
+export const addProductImage = ({ product_id, filename, path, mime_type }) =>
   dbRun(
+    'INSERT INTO product_images (product_id, filename, path, mime_type) VALUES (?, ?, ?, ?)',
+    [product_id, filename, path, mime_type]
     'INSERT INTO product_images (product_id, filename, path, mime_type) VALUES (?, ?, ?, ?)',
     [product_id, filename, path, mime_type]
   );
 
 export const getProductImages = (product_id) =>
   dbAll(
+    'SELECT * FROM product_images WHERE product_id = ? ORDER BY id ASC',
     'SELECT * FROM product_images WHERE product_id = ?',
     [product_id]
   );

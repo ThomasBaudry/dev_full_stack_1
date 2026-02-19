@@ -8,6 +8,12 @@
 import { getAddProductModalTemplate } from './modals/addProductModal.js';
 import { getEditProductModalTemplate } from './modals/editProductModal.js';
 import { getDeleteProductModalTemplate } from './modals/deleteProductModal.js';
+import {
+  fetchProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct as deleteProductApi,
+} from '../api/productsApi.js';
 
 // ── Template HTML principal ─────────────────────────────────────────────────
 const getTemplate = () => `
@@ -56,11 +62,10 @@ const getTemplate = () => `
       <!-- Tableau -->
       <div class="rounded-2xl border border-[#1a1a26] overflow-hidden opacity-0 [animation:fadeUp_0.4s_ease-out_forwards]"
         style="animation-delay:0.1s">
-        <div class="grid grid-cols-[2fr_1fr_1fr_100px_120px] bg-[#111118] border-b border-[#1a1a26] px-6 py-3">
+        <div class="grid grid-cols-[2fr_1fr_1fr_120px] bg-[#111118] border-b border-[#1a1a26] px-6 py-3">
           <span class="text-xs font-display font-semibold text-zinc-600 uppercase tracking-widest">Produit</span>
           <span class="text-xs font-display font-semibold text-zinc-600 uppercase tracking-widest">Catégorie</span>
           <span class="text-xs font-display font-semibold text-zinc-600 uppercase tracking-widest">Prix</span>
-          <span class="text-xs font-display font-semibold text-zinc-600 uppercase tracking-widest">Stock</span>
           <span class="text-xs font-display font-semibold text-zinc-600 uppercase tracking-widest text-right">Actions</span>
         </div>
         <div id="products-list"></div>
@@ -90,17 +95,17 @@ const getTemplate = () => `
 `;
 
 // ── Données & état ──────────────────────────────────────────────────────────
-let products = [
-  { id: 1, label: 'Granola Bio Avoine-Miel',    description: 'Mélange croustillant artisanal', category: 'Alimentation', price: 8.90,    stock: 42 },
-  { id: 2, label: 'Chaise Scandinave Hêtre',    description: 'Design minimaliste nordique',    category: 'Ameublement',  price: 189.00,  stock: 7  },
-  { id: 3, label: 'Vélo de Route Carbone',       description: 'Cadre ultra-léger 7.2kg',       category: 'Sport',        price: 1249.00, stock: 3  },
-  { id: 4, label: 'Thé Matcha Cérémonie',        description: 'Grade A, origine Uji Japon',    category: 'Alimentation', price: 24.50,   stock: 28 },
-  { id: 5, label: 'Lampe Béton Industrielle',    description: 'Abat-jour réglable 360°',       category: 'Ameublement',  price: 67.00,   stock: 14 },
-  { id: 6, label: 'Tapis de Yoga Liège',         description: 'Antidérapant, épaisseur 4mm',   category: 'Sport',        price: 55.00,   stock: 19 },
-];
-let nextId     = 7;
+let products = [];
 let editingId  = null;
 let deletingId = null;
+const normalizeProduct = (product) => ({
+  id: Number(product.id),
+  label: product.label ?? '',
+  description: product.description ?? '',
+  category: product.category ?? '',
+  price: Number(product.price ?? 0),
+  image_paths: Array.isArray(product.image_paths) ? product.image_paths : [],
+});
 
 const categoryColors = {
   'Alimentation': 'color:#34d399;background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.2)',
@@ -125,11 +130,10 @@ const renderTable = (data) => {
 
   list.innerHTML = data.map((p, index) => {
     const catStyle  = categoryColors[p.category] ?? defaultCatStyle;
-    const stockColor = p.stock <= 5 ? 'color:#f87171' : p.stock <= 15 ? 'color:#fbbf24' : 'color:#a1a1aa';
     const emoji      = categoryEmoji[p.category] ?? '📦';
 
     return `
-      <div class="group grid grid-cols-[2fr_1fr_1fr_100px_120px] px-6 py-4
+      <div class="group grid grid-cols-[2fr_1fr_1fr_120px] px-6 py-4
                   opacity-0 [animation:fadeUp_0.35s_ease-out_forwards] hover:bg-[rgba(200,240,74,0.03)] transition-colors duration-150
                   border-b border-[#1a1a2666] last:border-0 items-center"
         style="animation-delay:${Math.min(index + 1, 6) * 0.05}s"
@@ -149,10 +153,6 @@ const renderTable = (data) => {
           <span class="font-display font-semibold text-white text-sm">
             ${p.price.toFixed(2)}<span style="color:#52525b;font-size:11px;margin-left:2px">€</span>
           </span>
-        </div>
-        <div>
-          <span class="text-sm font-medium" style="${stockColor}">${p.stock}</span>
-          <span style="color:#3f3f46;font-size:12px;margin-left:4px">unités</span>
         </div>
         <div class="flex items-center justify-end gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <button class="edit-btn px-3 py-1.5 rounded-lg border border-[#252535] text-zinc-500
@@ -188,11 +188,10 @@ const getFormValues = (prefix) => ({
   description: document.getElementById(`${prefix}-f-description`).value.trim(),
   price: parseFloat(document.getElementById(`${prefix}-f-price`).value),
   category: document.getElementById(`${prefix}-f-category`).value.trim(),
-  stock: parseInt(document.getElementById(`${prefix}-f-stock`).value, 10),
 });
 
-const isFormValid = ({ label, description, price, category, stock }) =>
-  !!label && !!description && !isNaN(price) && price >= 0 && !!category && !Number.isNaN(stock) && stock >= 0;
+const isFormValid = ({ label, description, price, category }) =>
+  !!label && !!description && !isNaN(price) && price >= 0 && !!category;
 
 const bindImagePreview = (inputId, previewId) => {
   document.getElementById(inputId).addEventListener('change', e => {
@@ -215,12 +214,51 @@ const bindImagePreview = (inputId, previewId) => {
   });
 };
 
+const filesToDataUrls = async (inputId) => {
+  const input = document.getElementById(inputId);
+  const files = Array.from(input?.files ?? []).slice(0, 5);
+
+  const toDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target?.result ?? '');
+      reader.onerror = () => reject(new Error('Impossible de lire une image.'));
+      reader.readAsDataURL(file);
+    });
+
+  return Promise.all(files.map(toDataUrl));
+};
+
+const applySearchFilter = () => {
+  const query = document.getElementById('search-input')?.value.toLowerCase().trim() ?? '';
+  const filtered = query
+    ? products.filter((p) =>
+        p.label.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query)
+      )
+    : products;
+
+  renderTable(filtered);
+};
+
+const loadProducts = async () => {
+  try {
+    const data = await fetchProducts();
+    products = Array.isArray(data) ? data.map(normalizeProduct) : [];
+    applySearchFilter();
+  } catch (err) {
+    products = [];
+    renderTable(products);
+    showToast(err.message || 'Impossible de charger les produits', 'error');
+  }
+};
+
 const openAddModal = () => {
   editingId = null;
-  ['label', 'description', 'price', 'category', 'stock'].forEach(field => {
+  ['label', 'description', 'price', 'category'].forEach(field => {
     document.getElementById(`add-f-${field}`).value = '';
   });
-  document.getElementById('add-f-stock').value = 0;
   document.getElementById('add-image-previews').innerHTML = '';
   document.getElementById('add-form-error').classList.add('hidden');
   showModal(document.getElementById('add-modal'));
@@ -234,7 +272,6 @@ const openEditModal = (id) => {
   document.getElementById('edit-f-description').value = p.description;
   document.getElementById('edit-f-price').value       = p.price;
   document.getElementById('edit-f-category').value    = p.category;
-  document.getElementById('edit-f-stock').value       = p.stock;
   document.getElementById('edit-image-previews').innerHTML = '';
   document.getElementById('edit-form-error').classList.add('hidden');
   showModal(document.getElementById('edit-modal'));
@@ -285,14 +322,17 @@ const showToast = (message, type = 'info') => {
 
 // ── Initialisation des événements ───────────────────────────────────────────
 const initEvents = () => {
-  const addModal    = document.getElementById('add-modal');
-  const editModal   = document.getElementById('edit-modal');
+  const addModal = document.getElementById('add-modal');
+  const editModal = document.getElementById('edit-modal');
   const deleteModal = document.getElementById('delete-modal');
 
-  [addModal, editModal, deleteModal].forEach(modal =>
-    modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal); })
+  [addModal, editModal, deleteModal].forEach((modal) =>
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal(modal);
+    })
   );
-  document.addEventListener('keydown', e => {
+
+  document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       closeModal(addModal);
       closeModal(editModal);
@@ -303,70 +343,81 @@ const initEvents = () => {
   document.getElementById('add-product-btn').addEventListener('click', openAddModal);
 
   document.getElementById('add-modal-close').addEventListener('click', () => closeModal(addModal));
-  document.getElementById('add-cancel').addEventListener('click',      () => closeModal(addModal));
-  document.getElementById('add-submit').addEventListener('click', () => {
+  document.getElementById('add-cancel').addEventListener('click', () => closeModal(addModal));
+  document.getElementById('add-submit').addEventListener('click', async () => {
     const errEl = document.getElementById('add-form-error');
     const formData = getFormValues('add');
 
     if (!isFormValid(formData)) {
-      errEl.textContent = 'Tous les champs obligatoires doivent être remplis.';
+      errEl.textContent = 'Tous les champs obligatoires doivent etre remplis.';
       errEl.classList.remove('hidden');
       return;
     }
 
-    products.push({ id: nextId++, ...formData });
-    closeModal(addModal);
-    renderTable(products);
-    showToast('Produit ajouté avec succès', 'success');
+    try {
+      errEl.classList.add('hidden');
+      const images = await filesToDataUrls('add-f-images');
+      await createProduct({ ...formData, images });
+      closeModal(addModal);
+      await loadProducts();
+      showToast('Produit ajoute avec succes', 'success');
+    } catch (err) {
+      errEl.textContent = err.message || 'Erreur lors de la creation du produit.';
+      errEl.classList.remove('hidden');
+    }
   });
 
   document.getElementById('edit-modal-close').addEventListener('click', () => closeModal(editModal));
-  document.getElementById('edit-cancel').addEventListener('click',      () => closeModal(editModal));
-  document.getElementById('edit-submit').addEventListener('click', () => {
+  document.getElementById('edit-cancel').addEventListener('click', () => closeModal(editModal));
+  document.getElementById('edit-submit').addEventListener('click', async () => {
     if (editingId === null) return;
+
     const errEl = document.getElementById('edit-form-error');
     const formData = getFormValues('edit');
 
     if (!isFormValid(formData)) {
-      errEl.textContent = 'Tous les champs obligatoires doivent être remplis.';
+      errEl.textContent = 'Tous les champs obligatoires doivent etre remplis.';
       errEl.classList.remove('hidden');
       return;
     }
 
-    products = products.map(p => p.id === editingId ? { ...p, ...formData } : p);
-    closeModal(editModal);
-    renderTable(products);
-    showToast('Produit modifié avec succès', 'success');
+    try {
+      errEl.classList.add('hidden');
+      const images = await filesToDataUrls('edit-f-images');
+      await updateProduct(editingId, { ...formData, images });
+      closeModal(editModal);
+      await loadProducts();
+      showToast('Produit modifie avec succes', 'success');
+    } catch (err) {
+      errEl.textContent = err.message || 'Erreur lors de la modification du produit.';
+      errEl.classList.remove('hidden');
+    }
   });
 
   bindImagePreview('add-f-images', 'add-image-previews');
   bindImagePreview('edit-f-images', 'edit-image-previews');
 
-  document.getElementById('delete-cancel').addEventListener('click',  () => closeModal(deleteModal));
-  document.getElementById('delete-confirm').addEventListener('click', () => {
-    products = products.filter(p => p.id !== deletingId);
-    closeModal(deleteModal);
-    renderTable(products);
-    showToast('Produit supprimé', 'success');
-    deletingId = null;
+  document.getElementById('delete-cancel').addEventListener('click', () => closeModal(deleteModal));
+  document.getElementById('delete-confirm').addEventListener('click', async () => {
+    if (deletingId === null) return;
+
+    try {
+      await deleteProductApi(deletingId);
+      closeModal(deleteModal);
+      deletingId = null;
+      await loadProducts();
+      showToast('Produit supprime', 'success');
+    } catch (err) {
+      closeModal(deleteModal);
+      showToast(err.message || 'Erreur lors de la suppression', 'error');
+    }
   });
 
-  document.getElementById('search-input').addEventListener('input', e => {
-    const q = e.target.value.toLowerCase().trim();
-    renderTable(q
-      ? products.filter(p =>
-          p.label.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
-        )
-      : products
-    );
-  });
+  document.getElementById('search-input').addEventListener('input', applySearchFilter);
 };
 
-// ── Export principal ────────────────────────────────────────────────────────
 export const renderDashboard = (container) => {
   container.innerHTML = getTemplate();
   initEvents();
-  renderTable(products);
+  loadProducts();
 };

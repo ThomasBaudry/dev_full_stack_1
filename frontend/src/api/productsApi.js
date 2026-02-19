@@ -2,7 +2,7 @@
  * API Produits.
  */
 
-import { get, del, postForm, putForm } from './http.js';
+import { get, del, post, put } from './http.js';
 
 /** Récupère tous les produits. */
 export const fetchProducts = () => get('/products');
@@ -14,12 +14,12 @@ export const fetchProduct = (id) => get(`/products/${encodeURIComponent(id)}`);
 export const searchProducts = (query) =>
   get(`/products/search?q=${encodeURIComponent(query)}`);
 
-/** Crée un produit (FormData pour images). */
-export const createProduct = (formData) => postForm('/products', formData);
+/** Crée un produit (JSON + images base64). */
+export const createProduct = (payload) => post('/products', payload);
 
-/** Met à jour un produit. */
-export const updateProduct = (id, formData) =>
-  putForm(`/products/${encodeURIComponent(id)}`, formData);
+/** Met à jour un produit (JSON + images base64). */
+export const updateProduct = (id, payload) =>
+  put(`/products/${encodeURIComponent(id)}`, payload);
 
 /** Supprime un produit. */
 export const deleteProduct = (id) => del(`/products/${encodeURIComponent(id)}`);
