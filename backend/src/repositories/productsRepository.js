@@ -20,7 +20,7 @@ export const getProductById = async (id) => {
   if (!product) return null;
 
   const images = await dbAll(
-    'SELECT id, filename, path, mime_type, sort_order FROM product_images WHERE product_id = ? ORDER BY sort_order',
+    'SELECT id, filename, path, mime_type FROM product_images WHERE product_id = ? ORDER BY id ASC',
     [id]
   );
 
@@ -42,15 +42,15 @@ export const updateProduct = (id, { label, description, price, category }) =>
 export const deleteProduct = (id) =>
   dbRun('DELETE FROM products WHERE id = ?', [id]);
 
-export const addProductImage = ({ product_id, filename, path, mime_type, sort_order }) =>
+export const addProductImage = ({ product_id, filename, path, mime_type }) =>
   dbRun(
-    'INSERT INTO product_images (product_id, filename, path, mime_type, sort_order) VALUES (?, ?, ?, ?, ?)',
-    [product_id, filename, path, mime_type, sort_order]
+    'INSERT INTO product_images (product_id, filename, path, mime_type) VALUES (?, ?, ?, ?)',
+    [product_id, filename, path, mime_type]
   );
 
 export const getProductImages = (product_id) =>
   dbAll(
-    'SELECT * FROM product_images WHERE product_id = ? ORDER BY sort_order',
+    'SELECT * FROM product_images WHERE product_id = ? ORDER BY id ASC',
     [product_id]
   );
 

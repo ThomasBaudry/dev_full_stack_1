@@ -12,10 +12,20 @@ import { renderCartPage } from './pages/cartPage.js';
 import { renderStatsPage } from './pages/statsPage.js';
 import { renderDashboard } from './pages/dashboardPage.js';
 import { fetchCsrfToken } from './api/http.js';
+import { isAuthenticated } from './store/authStore.js';
 import { searchProducts } from './api/productsApi.js';
 import { productCard } from './components/productCard.js';
 import { addToCart } from './store/cartStore.js';
 import { escapeHtml } from './utils.js';
+import { navigateTo } from './router/router.js';
+
+const withAuth = (handler) => (container, params, query) => {
+  if (!isAuthenticated()) {
+    navigateTo('/login');
+    return;
+  }
+  handler(container, params, query);
+};
 
 /** Page de recherche. */
 const renderSearchPage = async (container, _params, query) => {
@@ -101,7 +111,7 @@ const registerRoutes = () => {
   addRoute('/register', renderRegisterPage);
   addRoute('/cart', renderCartPage);
   addRoute('/stats', renderStatsPage);
-  addRoute('/dashboard', renderDashboard);
+  addRoute('/dashboard', withAuth(renderDashboard));
 
   setNotFound((container) => {
     container.innerHTML = `

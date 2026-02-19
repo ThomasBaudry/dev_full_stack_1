@@ -32,7 +32,7 @@ export const getEditProductModalTemplate = () => `
                    focus:border-[#c8f04a88] focus:ring-1 focus:ring-[#c8f04a22]
                    transition-all duration-200 resize-none"></textarea>
         </div>
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-display font-semibold text-zinc-500 uppercase tracking-widest mb-2">
               Prix (€) <span class="text-[#c8f04a]">*</span>
@@ -47,15 +47,6 @@ export const getEditProductModalTemplate = () => `
               Catégorie <span class="text-[#c8f04a]">*</span>
             </label>
             <input id="edit-f-category" type="text" placeholder="Ex: Alimentation"
-              class="w-full px-4 py-2.5 rounded-xl bg-[#1a1a26] border border-[#252535]
-                     text-white placeholder-zinc-600 text-sm focus:outline-none
-                     focus:border-[#c8f04a88] focus:ring-1 focus:ring-[#c8f04a22] transition-all duration-200" />
-          </div>
-          <div>
-            <label class="block text-xs font-display font-semibold text-zinc-500 uppercase tracking-widest mb-2">
-              Stock <span class="text-[#c8f04a]">*</span>
-            </label>
-            <input id="edit-f-stock" type="number" min="0" step="1" placeholder="0"
               class="w-full px-4 py-2.5 rounded-xl bg-[#1a1a26] border border-[#252535]
                      text-white placeholder-zinc-600 text-sm focus:outline-none
                      focus:border-[#c8f04a88] focus:ring-1 focus:ring-[#c8f04a22] transition-all duration-200" />

@@ -4,6 +4,8 @@
 
 import { escapeHtml, formatPrice, truncate } from '../utils.js';
 
+const BACKEND_BASE_URL = 'http://localhost:5000';
+
 /** Couleurs par catégorie (cohérent avec le dashboard). */
 const categoryColors = {
   'Alimentation': 'color:#34d399;background:rgba(52,211,153,0.1);border-color:rgba(52,211,153,0.2)',
@@ -19,9 +21,19 @@ export const productCard = (product) => {
   const price = product.prix || product.price || 0;
   const category = escapeHtml(product.categorie || product.category || '');
   const catStyle = categoryColors[product.categorie || product.category] || defaultCatStyle;
-  const image = product.images && product.images.length > 0
-    ? escapeHtml(product.images[0])
-    : '';
+  const firstImagePath =
+    (Array.isArray(product.image_paths) && product.image_paths.length > 0
+      ? product.image_paths[0]
+      : Array.isArray(product.images) && product.images.length > 0
+        ? product.images[0]
+        : '') || '';
+
+  const imageUrl = String(firstImagePath).startsWith('http')
+    ? String(firstImagePath)
+    : firstImagePath
+      ? `${BACKEND_BASE_URL}${firstImagePath}`
+      : '';
+  const image = imageUrl ? escapeHtml(imageUrl) : '';
   const id = escapeHtml(String(product.id));
 
   return `
