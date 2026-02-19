@@ -12,6 +12,7 @@ import { renderCartPage } from './pages/cartPage.js';
 import { renderStatsPage } from './pages/statsPage.js';
 import { renderDashboard } from './pages/dashboardPage.js';
 import { renderSearchPage } from './pages/searchPage.js';
+import { renderCspReportsPage } from './pages/cspReportsPage.js';
 import { fetchCsrfToken } from './api/http.js';
 import { isAuthenticated } from './store/authStore.js';
 import { navigateTo } from './router/router.js';
@@ -35,6 +36,7 @@ const registerRoutes = () => {
   addRoute('/cart', renderCartPage);
   addRoute('/stats', renderStatsPage);
   addRoute('/dashboard', withAuth(renderDashboard));
+  addRoute('/csp-reports', withAuth(renderCspReportsPage));
 
   setNotFound((container) => {
     container.innerHTML = `
