@@ -19,6 +19,8 @@ export const renderNavbar = () => {
     ? `
       <a href="#/dashboard" class="px-3 py-1.5 rounded-lg text-sm text-zinc-400
         hover:text-white hover:bg-[#1a1a26] transition-all duration-200">Dashboard</a>
+      <a href="#/csp-reports" class="px-3 py-1.5 rounded-lg text-sm text-zinc-400
+        hover:text-white hover:bg-[#1a1a26] transition-all duration-200">CSP</a>
       <button id="logout-btn" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-[#252535]
         text-zinc-500 hover:text-white hover:border-zinc-600 hover:bg-[#1a1a26]
         transition-all duration-200 text-sm">
