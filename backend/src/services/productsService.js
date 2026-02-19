@@ -52,8 +52,7 @@ const saveImages = async (images = []) => {
     saved.push({
       filename,
       path: `/uploads/${filename}`,
-      mime_type: mimeType,
-      sort_order: i,
+      mime_type: mimeType
     });
   }
 
