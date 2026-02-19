@@ -23,20 +23,13 @@ const validateEmail = (email) => {
   }
 };
 
-export const registerUser = async ({ username, email, password }) => {
+export const registerUser = async ({ email, password }) => {
   validatePassword(password);
   validateEmail(email);
 
   const existingEmail = await findUserByEmail(email);
   if (existingEmail) {
     const err = new Error('Cet email est déjà utilisé');
-    err.status = 400;
-    throw err;
-  }
-
-  const existingUsername = await findUserByUsername(username);
-  if (existingUsername) {
-    const err = new Error('Ce nom d\'utilisateur est déjà utilisé');
     err.status = 400;
     throw err;
   }
@@ -63,13 +56,13 @@ export const loginUser = async ({ email, password }) => {
   }
 
   const token = jwt.sign(
-    { id: user.id, username: user.username },
+    { id: user.id },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
 
   return {
     token,
-    user: { id: user.id, username: user.username, email: user.email },
+    user: { id: user.id, email: user.email },
   };
 };
