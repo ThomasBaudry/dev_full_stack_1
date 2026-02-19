@@ -51,9 +51,14 @@ export const addProductImage = ({ product_id, filename, path, mime_type }) =>
 export const getProductImages = (product_id) =>
   dbAll(
     "SELECT * FROM product_images WHERE product_id = ? ORDER BY id ASC",
-    "SELECT * FROM product_images WHERE product_id = ?",
     [product_id],
   );
+
+export const getProductImageById = (id) =>
+  dbGet("SELECT * FROM product_images WHERE id = ?", [id]);
+
+export const deleteProductImageById = (id) =>
+  dbRun("DELETE FROM product_images WHERE id = ?", [id]);
 
 export const deleteProductImages = (product_id) =>
   dbRun("DELETE FROM product_images WHERE product_id = ?", [product_id]);

@@ -9,6 +9,8 @@ const mockRepo = {
   deleteProduct: jest.fn(),
   addProductImage: jest.fn(),
   getProductImages: jest.fn(),
+  getProductImageById: jest.fn(),
+  deleteProductImageById: jest.fn(),
   deleteProductImages: jest.fn(),
 };
 
@@ -20,9 +22,12 @@ jest.unstable_mockModule(
   () => mockRepo,
 );
 
+const mockMkdir = jest.fn().mockResolvedValue(undefined);
+
 jest.unstable_mockModule("node:fs/promises", () => ({
   writeFile: mockWriteFile,
   unlink: mockUnlink,
+  mkdir: mockMkdir,
 }));
 
 const {
@@ -207,13 +212,10 @@ describe("Products Service", () => {
       expect(result.label).toBe("New");
     });
 
-    it("remplace les anciennes images par les nouvelles", async () => {
-      const oldImages = [{ filename: "old.jpg", path: "/uploads/old.jpg" }];
+    it("ajoute de nouvelles images sans supprimer les existantes", async () => {
       mockRepo.getProductById
-        .mockResolvedValueOnce({ id: 1, images: oldImages })
-        .mockResolvedValueOnce({ id: 1, images: [{}] });
-      mockRepo.getProductImages.mockResolvedValue(oldImages);
-      mockRepo.deleteProductImages.mockResolvedValue({});
+        .mockResolvedValueOnce({ id: 1, images: [{ id: 10, filename: "existing.jpg" }] })
+        .mockResolvedValueOnce({ id: 1, images: [{}, {}] });
       mockRepo.addProductImage.mockResolvedValue({});
 
       await updateProduct(1, {
@@ -224,10 +226,49 @@ describe("Products Service", () => {
         images: [VALID_BASE64_PNG],
       });
 
-      expect(mockRepo.deleteProductImages).toHaveBeenCalledWith(1);
-      expect(mockUnlink).toHaveBeenCalledTimes(1);
+      expect(mockRepo.deleteProductImages).not.toHaveBeenCalled();
       expect(mockWriteFile).toHaveBeenCalledTimes(1);
       expect(mockRepo.addProductImage).toHaveBeenCalledTimes(1);
+    });
+
+    it("supprime les images existantes via removedImageIds", async () => {
+      const imgToRemove = { id: 5, product_id: 1, filename: "old.jpg", path: "/uploads/old.jpg" };
+      mockRepo.getProductById
+        .mockResolvedValueOnce({ id: 1, images: [imgToRemove] })
+        .mockResolvedValueOnce({ id: 1, images: [] });
+      mockRepo.getProductImageById.mockResolvedValue(imgToRemove);
+      mockRepo.deleteProductImageById.mockResolvedValue({ changes: 1 });
+
+      await updateProduct(1, {
+        label: "A",
+        description: "B",
+        price: "10",
+        category: "cat1",
+        removedImageIds: [5],
+      });
+
+      expect(mockRepo.getProductImageById).toHaveBeenCalledWith(5);
+      expect(mockRepo.deleteProductImageById).toHaveBeenCalledWith(5);
+      expect(mockUnlink).toHaveBeenCalledTimes(1);
+    });
+
+    it("ignore les removedImageIds qui n'appartiennent pas au produit", async () => {
+      const foreignImg = { id: 99, product_id: 2, filename: "other.jpg" };
+      mockRepo.getProductById
+        .mockResolvedValueOnce({ id: 1, images: [] })
+        .mockResolvedValueOnce({ id: 1, images: [] });
+      mockRepo.getProductImageById.mockResolvedValue(foreignImg);
+
+      await updateProduct(1, {
+        label: "A",
+        description: "B",
+        price: "10",
+        category: "cat1",
+        removedImageIds: [99],
+      });
+
+      expect(mockRepo.deleteProductImageById).not.toHaveBeenCalled();
+      expect(mockUnlink).not.toHaveBeenCalled();
     });
 
     it("lance une erreur 404 si le produit n'existe pas", async () => {
