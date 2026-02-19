@@ -1,0 +1,5 @@
+# Security policy for this application
+Contact: mailto:security@mail.com
+Expires: 2027-02-19T00:00:00.000Z
+Preferred-Languages: fr, en
+Canonical: https://myApp.com/.well-known/security.txt
