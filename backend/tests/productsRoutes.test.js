@@ -22,6 +22,7 @@ jest.unstable_mockModule('../src/config/db.js', () => ({
 jest.unstable_mockModule('node:fs/promises', () => ({
   writeFile: jest.fn().mockResolvedValue(undefined),
   unlink: jest.fn().mockResolvedValue(undefined),
+  mkdir: jest.fn().mockResolvedValue(undefined),
 }));
 
 // ── Import dynamique APRÈS les mocks et env ────────────────────────

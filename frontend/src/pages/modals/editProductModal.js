@@ -54,7 +54,15 @@ export const getEditProductModalTemplate = () => `
         </div>
         <div>
           <label class="block text-xs font-display font-semibold text-zinc-500 uppercase tracking-widest mb-2">
-            Images <span class="text-zinc-600 normal-case font-normal">(max 5)</span>
+            Images actuelles
+          </label>
+          <div id="edit-existing-images" class="flex flex-wrap gap-2 mb-3">
+            <p class="text-zinc-600 text-xs italic">Aucune image</p>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-display font-semibold text-zinc-500 uppercase tracking-widest mb-2">
+            Ajouter des images <span class="text-zinc-600 normal-case font-normal">(max 5)</span>
           </label>
           <div class="border-2 border-dashed border-[#252535] rounded-xl p-5 text-center
                       hover:border-[#c8f04a66] hover:bg-[#c8f04a08] transition-all duration-200

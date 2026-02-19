@@ -10,6 +10,7 @@ import { getEditProductModalTemplate } from './modals/editProductModal.js';
 import { getDeleteProductModalTemplate } from './modals/deleteProductModal.js';
 import {
   fetchProducts,
+  fetchProduct,
   createProduct,
   updateProduct,
   deleteProduct as deleteProductApi,
@@ -95,9 +96,11 @@ const getTemplate = () => `
 `;
 
 // ── Données & état ──────────────────────────────────────────────────────────
+const BACKEND_BASE_URL = 'http://localhost:5000';
 let products = [];
 let editingId  = null;
 let deletingId = null;
+let removedImageIds = [];
 const normalizeProduct = (product) => ({
   id: Number(product.id),
   label: product.label ?? '',
@@ -229,6 +232,70 @@ const filesToDataUrls = async (inputId) => {
   return Promise.all(files.map(toDataUrl));
 };
 
+const renderExistingImages = (images) => {
+  const container = document.getElementById('edit-existing-images');
+  if (!images || images.length === 0) {
+    container.innerHTML = '<p class="text-zinc-600 text-xs italic">Aucune image</p>';
+    return;
+  }
+
+  container.innerHTML = images.map((img) => {
+    const src = String(img.path).startsWith('http') ? img.path : `${BACKEND_BASE_URL}${img.path}`;
+    return `
+      <div class="existing-img-wrapper" data-image-id="${img.id}"
+        style="position:relative;display:inline-block;transition:all 0.2s ease-out">
+        <img src="${src}" alt="${img.filename}"
+          class="existing-img-thumb"
+          style="width:56px;height:56px;object-fit:cover;border-radius:12px;border:1px solid #252535;transition:all 0.2s ease-out" />
+        <button type="button" class="toggle-existing-img"
+          data-image-id="${img.id}"
+          style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;
+                 background:rgba(239,68,68,0.9);color:white;border:2px solid #111118;
+                 display:flex;align-items:center;justify-content:center;cursor:pointer;
+                 transition:all 0.15s ease-out;line-height:1">
+          <svg style="width:12px;height:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    `;
+  }).join('');
+
+  container.querySelectorAll('.toggle-existing-img').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const imageId = Number(btn.dataset.imageId);
+      const wrapper = btn.closest('.existing-img-wrapper');
+      const thumb = wrapper.querySelector('.existing-img-thumb');
+      const isMarked = removedImageIds.includes(imageId);
+
+      if (!isMarked) {
+        // Marquer pour suppression : griser + icône +
+        removedImageIds.push(imageId);
+        thumb.style.opacity = '0.25';
+        thumb.style.filter = 'grayscale(1)';
+        btn.style.background = 'rgba(200,240,74,0.9)';
+        btn.style.color = '#0a0a0f';
+        btn.innerHTML = `
+          <svg style="width:12px;height:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+          </svg>`;
+      } else {
+        // Restaurer : retirer du tableau + remettre normal
+        removedImageIds = removedImageIds.filter((id) => id !== imageId);
+        thumb.style.opacity = '1';
+        thumb.style.filter = 'none';
+        btn.style.background = 'rgba(239,68,68,0.9)';
+        btn.style.color = 'white';
+        btn.innerHTML = `
+          <svg style="width:12px;height:12px" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>`;
+      }
+    });
+  });
+};
+
 const applySearchFilter = () => {
   const query = document.getElementById('search-input')?.value.toLowerCase().trim() ?? '';
   const filtered = query
@@ -264,16 +331,28 @@ const openAddModal = () => {
   showModal(document.getElementById('add-modal'));
 };
 
-const openEditModal = (id) => {
+const openEditModal = async (id) => {
   const p = products.find(product => product.id === id);
   if (!p) return;
   editingId = id;
+  removedImageIds = [];
+
   document.getElementById('edit-f-label').value       = p.label;
   document.getElementById('edit-f-description').value = p.description;
   document.getElementById('edit-f-price').value       = p.price;
   document.getElementById('edit-f-category').value    = p.category;
+  document.getElementById('edit-f-images').value      = '';
   document.getElementById('edit-image-previews').innerHTML = '';
   document.getElementById('edit-form-error').classList.add('hidden');
+
+  // Charger le produit complet pour récupérer les images avec leurs IDs
+  try {
+    const fullProduct = await fetchProduct(id);
+    renderExistingImages(fullProduct.images ?? []);
+  } catch {
+    renderExistingImages([]);
+  }
+
   showModal(document.getElementById('edit-modal'));
 };
 
@@ -384,7 +463,7 @@ const initEvents = () => {
     try {
       errEl.classList.add('hidden');
       const images = await filesToDataUrls('edit-f-images');
-      await updateProduct(editingId, { ...formData, images });
+      await updateProduct(editingId, { ...formData, images, removedImageIds });
       closeModal(editModal);
       await loadProducts();
       showToast('Produit modifie avec succes', 'success');
