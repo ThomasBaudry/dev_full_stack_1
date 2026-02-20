@@ -2,9 +2,9 @@
 
 Application full-stack d'ecommerce (backend Node/Express + frontend Vite) utilisée pour le projet du cours "Dev Full Stack 1".
 
-**Groupe**
-Claire Simonot
-Benjamin Seixeiro
+**Groupe:**
+Claire Simonot,
+Benjamin Seixeiro,
 Thomas Baudry
 
 **Stack principale**
